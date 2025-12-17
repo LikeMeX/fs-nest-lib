@@ -1,0 +1,21 @@
+name: Publish
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: write
+  issues: write
+
+jobs:
+  call-workflow-test:
+    if: ${{ !contains(github.actor, 'github-actions[bot]') }}
+    uses: BMA-Game/github-reuse-workflow/.github/workflows/test.yaml@main
+
+  release:
+    needs: [call-workflow-test]
+    uses: BMA-Game/github-reuse-workflow/.github/workflows/npm-publish.yaml@main
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
