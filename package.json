@@ -9,6 +9,10 @@
     "node": ">=24"
   },
   "packageManager": "pnpm@10.29.3",
+  "overrides": {
+    "ajv": ">=8.18.0",
+    "serialize-javascript": ">=7.0.3"
+  },
   "pnpm": {
     "overrides": {
       "ajv@>=7.0.0-alpha.0 <8.18.0": ">=8.18.0",
