@@ -1,16 +1,42 @@
-name: Publish
+name: Publish to npm
+
 on:
   push:
     branches:
       - main
 
 permissions:
+  contents: read
   id-token: write
-  contents: write
-  issues: write
 
 jobs:
-  release:
-    uses: LikeMeX/github-reuse-workflow/.github/workflows/npm-publish.yaml@main
-    secrets:
-      GH_PAT: ${{ secrets.GH_PAT }}
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Configure npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+
+      - name: Publish to npm
+        run: pnpm publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
