@@ -1,7 +1,7 @@
 import { RequestMethod } from '@nestjs/common';
 import { context, trace } from '@opentelemetry/api';
-import { randomUUID } from 'crypto';
-import { IncomingMessage, ServerResponse } from 'http';
+import { randomUUID } from 'node:crypto';
+import { IncomingMessage, ServerResponse } from 'node:http';
 import { LoggerModule } from 'nestjs-pino';
 import { GenReqId, ReqId } from 'pino-http';
 

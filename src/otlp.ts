@@ -10,7 +10,7 @@ import {
 } from '@opentelemetry/resources';
 import { NodeSDK, tracing } from '@opentelemetry/sdk-node';
 import { ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
-import { IncomingMessage } from 'http';
+import { IncomingMessage } from 'node:http';
 
 import { k8s, version } from './configs/otlp.config.env';
 import {
@@ -32,24 +32,23 @@ interface OtlpSdkOptions {
 const otlpSdk = (options: OtlpSdkOptions) => {
   const defaultIgnoreIncomingRequestUrls = [
     '/health',
+    '/healthz',
     '/metrics',
     '/health/readiness',
     '/health/liveness',
   ];
   const { exporterUrl, ignoreIncomingRequestUrls } = options;
-  const mergedIgnoreIncomingRequestUrls = [
-    ...new Set([
-      ...defaultIgnoreIncomingRequestUrls,
-      ...(ignoreIncomingRequestUrls ?? []),
-    ]),
-  ];
+  const mergedIgnoreIncomingRequestUrls = new Set([
+    ...defaultIgnoreIncomingRequestUrls,
+    ...(ignoreIncomingRequestUrls ?? []),
+  ]);
   const traceExporterOptions: OTLPTraceExporterParam = {
     url: exporterUrl,
   };
   const httpInstrumentConfig: HttpInstrumentationConfig = {
     enabled: true,
     ignoreIncomingRequestHook: (req: IncomingMessage) =>
-      mergedIgnoreIncomingRequestUrls.includes(req.url as string),
+      mergedIgnoreIncomingRequestUrls.has(req.url as string),
   };
   const traceExporter = new OTLPTraceExporter(traceExporterOptions);
   const spanProcessor = new tracing.BatchSpanProcessor(traceExporter);

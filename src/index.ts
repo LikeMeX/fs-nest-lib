@@ -1,2 +1,2 @@
 export * from './otlp';
-export { default } from './otlp';
+export * from './loggerModule';
