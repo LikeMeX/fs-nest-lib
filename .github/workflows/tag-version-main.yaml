@@ -10,3 +10,32 @@ jobs:
     uses: LikeMeX/github-reuse-workflow/.github/workflows/semantic-release.yaml@main
     secrets:
       GH_PAT: ${{ secrets.GH_PAT }}
+
+  update-package-version:
+    needs: call-workflow-semantic-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Get latest tag
+        id: get-tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          VERSION=${LATEST_TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        run: npm pkg set version=${{ steps.get-tag.outputs.version }}
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git diff --staged --quiet || git commit -m "chore: update package.json version to ${{ steps.get-tag.outputs.version }} [skip ci]"
+          git push
