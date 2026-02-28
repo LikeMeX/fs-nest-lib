@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - package.json
 
 permissions:
   contents: read
@@ -16,19 +18,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-tags: true
+          fetch-depth: 2
 
-      - name: Get latest tag and update package.json version
+      - name: Check if version changed
+        id: version-check
         run: |
-          git fetch --tags
-          LATEST_TAG=$(git describe --tags --abbrev=0)
-          VERSION=${LATEST_TAG#v}
-          npm pkg set version=$VERSION
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          OLD_VERSION=$(git show HEAD~1:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).version")
+          echo "old=$OLD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "new=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Setup pnpm
+        if: steps.version-check.outputs.changed == 'true'
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
+        if: steps.version-check.outputs.changed == 'true'
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -36,12 +46,15 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
+        if: steps.version-check.outputs.changed == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build
+        if: steps.version-check.outputs.changed == 'true'
         run: pnpm run build
 
       - name: Publish to npm
+        if: steps.version-check.outputs.changed == 'true'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
