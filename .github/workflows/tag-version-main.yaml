@@ -1,0 +1,12 @@
+name: Tag Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  call-workflow-semantic-release:
+    uses: LikeMeX/github-reuse-workflow/.github/workflows/semantic-release.yaml@main
+    secrets:
+      GH_PAT: ${{ secrets.GH_PAT }}
