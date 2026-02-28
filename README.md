@@ -1,98 +1,114 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# fs-nest-lib
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS library providing OpenTelemetry (OTLP) tracing and Pino-based request logging with trace/span correlation.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Requirements
 
-## Description
+- **Node.js** ≥ 24  
+- **pnpm** (recommended) or npm/yarn
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## Installation
 
 ```bash
-$ pnpm install
+pnpm add fs-nest-lib
+# or
+npm install fs-nest-lib
 ```
 
-## Compile and run the project
+## Usage
 
-```bash
-# development
-$ pnpm run start
+### 1. OTLP tracing
 
-# watch mode
-$ pnpm run start:dev
+Initialize the OpenTelemetry SDK **before** creating your Nest app (e.g. at the top of `main.ts` or in a bootstrap file):
 
-# production mode
-$ pnpm run start:prod
+```ts
+import otlpSdk from 'fs-nest-lib';
+
+otlpSdk({
+  exporterUrl: process.env.OTLP_EXPORTER_URL ?? 'http://localhost:4317',
+  ignoreIncomingRequestUrls: ['/custom-skip'], // optional; health/metrics are ignored by default
+}).start();
+
+// Then bootstrap Nest
+const app = await NestFactory.create(AppModule);
+// ...
 ```
 
-## Run tests
+Use the shared tracer for custom spans:
 
-```bash
-# unit tests
-$ pnpm run test
+```ts
+import { tracer } from 'fs-nest-lib';
 
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+const span = tracer.startSpan('my-operation');
+// ... do work ...
+span.end();
 ```
 
-## Deployment
+**Default ignored paths** (no spans): `/health`, `/healthz`, `/metrics`, `/health/readiness`, `/health/liveness`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+**Auto-instrumentation**: HTTP, NestJS core, and KafkaJS are enabled; FS instrumentation is disabled.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 2. Logger module (Pino)
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+Import the preconfigured logger module in your app:
+
+```ts
+import { Module } from '@nestjs/common';
+import { loggerModule } from 'fs-nest-lib';
+
+@Module({
+  imports: [loggerModule],
+  // ...
+})
+export class AppModule {}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- **Request ID**: Uses `req.id`, `x-request-id` header, or a generated UUID; sets `x-request-id` on the response.
+- **Trace correlation**: Logs include `spanId` and `traceId` when a span is active.
+- **Redaction**: `res.headers`, `[*].remoteAddress`, and `[*].remotePort` are redacted.
+- **Excluded routes**: `/health/*`, `/metrics`, `/healthz` are not logged.
 
-## Resources
+Inject the logger in services/controllers:
 
-Check out a few resources that may come in handy when working with NestJS:
+```ts
+import { PinoLogger } from 'nestjs-pino';
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+@Injectable()
+export class MyService {
+  constructor(private readonly logger: PinoLogger) {}
+  doSomething() {
+    this.logger.info('message');
+  }
+}
+```
 
-## Support
+## Environment variables
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### OTLP
 
-## Stay in touch
+| Variable             | Description                          |
+|----------------------|--------------------------------------|
+| `OTLP_EXPORTER_URL`  | gRPC endpoint for trace export       |
+| `SERVICE_NAME`       | Service name in traces               |
+| `VERSION`            | Service version                      |
+| `NODE_NAME`          | K8s node name (optional)             |
+| `POD_NAME`           | K8s pod name (optional)              |
+| `POD_NAMESPACE`      | K8s namespace (optional)             |
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Logging
+
+| Variable                 | Description                                  |
+|--------------------------|----------------------------------------------|
+| `LOG_LEVEL`              | Pino level: `trace`, `debug`, `info`, `warn`, `error`, `fatal` (default: `info`) |
+| `IS_PINO_PRETTY`         | `true` for pretty-printed logs (e.g. local dev) |
+| `IS_LOG_GLOBAL_PAYLOAD`  | Global payload flag (optional)               |
+
+## Exports
+
+- **`otlpSdk(options)`** – Creates and returns the OpenTelemetry `NodeSDK`; call `.start()` before bootstrapping Nest.
+- **`tracer`** – Shared tracer for the configured service name.
+- **`loggerModule`** – NestJS dynamic module for `nestjs-pino` (use in `imports`).
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+UNLICENSED
