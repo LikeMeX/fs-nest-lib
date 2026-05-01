@@ -1,6 +1,6 @@
 {
   "name": "@likemex/fs-nest-lib",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "NestJS library: OpenTelemetry OTLP setup and Pino logger module with trace correlation",
   "author": "LikeMeX",
   "license": "MIT",
@@ -72,8 +72,12 @@
     "rxjs": "^7.0.0"
   },
   "peerDependenciesMeta": {
-    "@nestjs/common": { "optional": false },
-    "@nestjs/core": { "optional": false }
+    "@nestjs/common": {
+      "optional": false
+    },
+    "@nestjs/core": {
+      "optional": false
+    }
   },
   "dependencies": {
     "@opentelemetry/auto-instrumentations-node": "^0.67.3",
