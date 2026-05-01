@@ -42,8 +42,9 @@ export const loggerModule = LoggerModule.forRoot({
   },
 
   exclude: [
-    { method: RequestMethod.ALL, path: '/health/*path' },
-    { method: RequestMethod.ALL, path: '/metrics' },
-    { method: RequestMethod.ALL, path: '/healthz' },
+    { method: RequestMethod.ALL, path: 'health' },
+    { method: RequestMethod.ALL, path: 'health/(.*)' },
+    { method: RequestMethod.ALL, path: 'metrics' },
+    { method: RequestMethod.ALL, path: 'healthz' },
   ],
 });
