@@ -8,8 +8,7 @@
         "npmPublish": false,
         "tarballDir": "."
       }
-    ],
-    "@semantic-release/github"
+    ]
   ],
   "branches": [
     "main"
