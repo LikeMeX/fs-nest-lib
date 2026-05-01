@@ -5,10 +5,11 @@
     [
       "@semantic-release/npm",
       {
-        "npmPublish": true,
+        "npmPublish": false,
         "tarballDir": "."
       }
-    ]
+    ],
+    "@semantic-release/github"
   ],
   "branches": [
     "main"
