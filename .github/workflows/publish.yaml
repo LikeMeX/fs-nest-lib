@@ -1,10 +1,9 @@
 name: Publish to npm
 
 on:
-  push:
-    tags:
-      - "v*"
-  workflow_dispatch:
+  release:
+    types:
+      - published
 
 permissions:
   contents: read
