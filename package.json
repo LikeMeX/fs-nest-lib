@@ -1,12 +1,45 @@
 {
-  "name": "@LikeMeX/fs-nest-lib",
+  "name": "@likemex/fs-nest-lib",
   "version": "1.0.7",
-  "description": "",
-  "author": "",
-  "private": false,
-  "license": "UNLICENSED",
+  "description": "NestJS library: OpenTelemetry OTLP setup and Pino logger module with trace correlation",
+  "author": "LikeMeX",
+  "license": "MIT",
+  "homepage": "https://github.com/LikeMeX/fs-nest-lib#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LikeMeX/fs-nest-lib.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LikeMeX/fs-nest-lib/issues"
+  },
+  "keywords": [
+    "nestjs",
+    "opentelemetry",
+    "otlp",
+    "pino",
+    "logger",
+    "tracing",
+    "observability"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "engines": {
-    "node": ">=24"
+    "node": ">=20"
   },
   "packageManager": "pnpm@10.29.3",
   "overrides": {
@@ -22,22 +55,27 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run clean && pnpm run build"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@opentelemetry/api": "^1.9.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@nestjs/common": { "optional": false },
+    "@nestjs/core": { "optional": false }
   },
   "dependencies": {
-    "@nestjs/common": "^11.1.14",
-    "@nestjs/core": "^11.1.14",
-    "@nestjs/platform-express": "^11.1.14",
-    "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.67.3",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.208.0",
     "@opentelemetry/instrumentation-http": "^0.208.0",
@@ -45,16 +83,17 @@
     "@opentelemetry/sdk-node": "^0.208.0",
     "@opentelemetry/semantic-conventions": "^1.40.0",
     "nestjs-pino": "^4.6.0",
-    "pino-http": "^11.0.0",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "pino-http": "^11.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^9.39.3",
     "@nestjs/cli": "^11.0.16",
+    "@nestjs/common": "^11.1.14",
+    "@nestjs/core": "^11.1.14",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.14",
+    "@opentelemetry/api": "^1.9.0",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.19.13",
@@ -65,6 +104,8 @@
     "globals": "^16.5.0",
     "jest": "^30.2.0",
     "prettier": "^3.8.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.6",
