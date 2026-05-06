@@ -1,4 +1,6 @@
 'use strict';
+import { IncomingMessage } from 'node:http';
+
 import { trace } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
@@ -8,9 +10,9 @@ import {
   processDetector,
   resourceFromAttributes,
 } from '@opentelemetry/resources';
-import { NodeSDK, tracing } from '@opentelemetry/sdk-node';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
-import { IncomingMessage } from 'node:http';
 
 import { k8s, version } from './configs/otlp.config.env';
 import {
@@ -29,13 +31,16 @@ interface OtlpSdkOptions {
   ignoreIncomingRequestUrls?: string[];
 }
 
-const otlpSdk = (options: OtlpSdkOptions) => {
+/** Last SDK instance from {@link default}; {@link shutdownOtlpSdk} shuts this down (same instance as `.start()`). */
+let activeOtlpSdk: NodeSDK | undefined;
+
+function buildOtlpNodeSdk(options: OtlpSdkOptions): NodeSDK {
   const defaultIgnoreIncomingRequestUrls = [
     '/health',
-    '/healthz',
     '/metrics',
     '/health/readiness',
     '/health/liveness',
+    '/healthz',
   ];
   const { exporterUrl, ignoreIncomingRequestUrls } = options;
   const mergedIgnoreIncomingRequestUrls = new Set([
@@ -48,13 +53,13 @@ const otlpSdk = (options: OtlpSdkOptions) => {
   const httpInstrumentConfig: HttpInstrumentationConfig = {
     enabled: true,
     ignoreIncomingRequestHook: (req: IncomingMessage) =>
-      mergedIgnoreIncomingRequestUrls.has(req.url as string),
+      mergedIgnoreIncomingRequestUrls.has(req.url ?? ''),
   };
   const traceExporter = new OTLPTraceExporter(traceExporterOptions);
-  const spanProcessor = new tracing.BatchSpanProcessor(traceExporter);
+
+  const spanProcessor = new BatchSpanProcessor(traceExporter);
   return new NodeSDK({
-    traceExporter,
-    spanProcessor,
+    spanProcessors: [spanProcessor],
     instrumentations: [
       getNodeAutoInstrumentations({
         '@opentelemetry/instrumentation-fs': { enabled: false },
@@ -73,7 +78,21 @@ const otlpSdk = (options: OtlpSdkOptions) => {
     }),
     serviceName: k8s.serviceName,
   });
+}
+
+const otlpSdk = (options: OtlpSdkOptions) => {
+  const sdk = buildOtlpNodeSdk(options);
+  activeOtlpSdk = sdk;
+  return sdk;
 };
+
+export async function shutdownOtlpSdk(): Promise<void> {
+  if (!activeOtlpSdk) {
+    return;
+  }
+  await activeOtlpSdk.shutdown();
+  activeOtlpSdk = undefined;
+}
 
 export default otlpSdk;
 
