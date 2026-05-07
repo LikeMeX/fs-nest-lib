@@ -21,6 +21,7 @@ import {
   ATTR_K8S_NODE_NAME,
   ATTR_K8S_POD_NAME,
 } from './semconv';
+import { NestInstrumentation } from '@opentelemetry/instrumentation-nestjs-core';
 
 type OTLPTraceExporterParam = ConstructorParameters<
   typeof OTLPTraceExporter
@@ -64,9 +65,9 @@ function buildOtlpNodeSdk(options: OtlpSdkOptions): NodeSDK {
       getNodeAutoInstrumentations({
         '@opentelemetry/instrumentation-fs': { enabled: false },
         '@opentelemetry/instrumentation-http': httpInstrumentConfig,
-        '@opentelemetry/instrumentation-nestjs-core': { enabled: true },
         '@opentelemetry/instrumentation-kafkajs': { enabled: true },
       }),
+      new NestInstrumentation(),
     ],
     resourceDetectors: [envDetector, processDetector],
     resource: resourceFromAttributes({

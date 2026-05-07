@@ -80,12 +80,13 @@
     }
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.7.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.70.0",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.212.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.75.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.217.0",
     "@opentelemetry/instrumentation-http": "^0.212.0",
+    "@opentelemetry/instrumentation-nestjs-core": "^0.63.0",
     "@opentelemetry/resources": "^2.5.1",
-    "@opentelemetry/sdk-node": "^0.212.0",
+    "@opentelemetry/sdk-node": "^0.217.0",
     "@opentelemetry/sdk-trace-base": "^2.6.0",
     "@opentelemetry/semantic-conventions": "^1.39.0",
     "nestjs-pino": "^4.6.0",
