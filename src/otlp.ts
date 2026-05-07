@@ -81,8 +81,19 @@ function buildOtlpNodeSdk(options: OtlpSdkOptions): NodeSDK {
 }
 
 const otlpSdk = (options: OtlpSdkOptions) => {
+  if (activeOtlpSdk) {
+    return activeOtlpSdk;
+  }
   const sdk = buildOtlpNodeSdk(options);
+  sdk.start();
   activeOtlpSdk = sdk;
+
+  const shutdown = () => {
+    void shutdownOtlpSdk().finally(() => process.exit(0));
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+
   return sdk;
 };
 
@@ -90,8 +101,9 @@ export async function shutdownOtlpSdk(): Promise<void> {
   if (!activeOtlpSdk) {
     return;
   }
-  await activeOtlpSdk.shutdown();
+  const sdk = activeOtlpSdk;
   activeOtlpSdk = undefined;
+  await sdk.shutdown();
 }
 
 export default otlpSdk;
