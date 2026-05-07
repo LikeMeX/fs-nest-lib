@@ -3,7 +3,7 @@ import { context, trace } from '@opentelemetry/api';
 import { randomUUID } from 'node:crypto';
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { LoggerModule } from 'nestjs-pino';
-import { GenReqId, ReqId } from 'pino-http';
+import { GenReqId } from 'pino-http';
 
 import { pinoHttp } from './configs/log.config.env';
 
@@ -14,7 +14,7 @@ const genReqId: GenReqId = (req: IncomingMessage, res: ServerResponse) => {
   const id: string = reqId ?? xRequestId ?? randomId;
 
   res.setHeader('x-request-id', id);
-  return id as ReqId;
+  return id;
 };
 
 export const loggerModule = LoggerModule.forRoot({
