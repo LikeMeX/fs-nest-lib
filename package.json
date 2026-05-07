@@ -48,8 +48,21 @@
   },
   "pnpm": {
     "overrides": {
-      "ajv@>=7.0.0-alpha.0 <8.18.0": ">=8.18.0",
-      "serialize-javascript@<=7.0.2": ">=7.0.3"
+      "ajv": ">=8.18.0",
+      "serialize-javascript": ">=7.0.5",
+      "multer": ">=2.1.1",
+      "file-type": ">=21.3.2",
+      "flatted": ">=3.4.2",
+      "handlebars": ">=4.7.9",
+      "brace-expansion@1": ">=1.1.13",
+      "brace-expansion@2": ">=2.0.3",
+      "brace-expansion@>=4.0.0": ">=5.0.5",
+      "picomatch@2": ">=2.3.2",
+      "picomatch@>=4.0.0": ">=4.0.4",
+      "path-to-regexp@>=8.0.0": ">=8.4.0",
+      "lodash": ">=4.18.0",
+      "@nestjs/core@>=11.0.0 <11.1.18": ">=11.1.18",
+      "protobufjs": ">=7.5.5"
     }
   },
   "scripts": {
@@ -84,11 +97,9 @@
     "@opentelemetry/auto-instrumentations-node": "^0.75.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.217.0",
     "@opentelemetry/instrumentation-http": "^0.212.0",
-    "@opentelemetry/instrumentation-nestjs-core": "^0.63.0",
     "@opentelemetry/resources": "^2.5.1",
     "@opentelemetry/sdk-node": "^0.217.0",
     "@opentelemetry/sdk-trace-base": "^2.6.0",
-    "@opentelemetry/sdk-trace-node": "^2.7.1",
     "@opentelemetry/semantic-conventions": "^1.39.0",
     "nestjs-pino": "^4.6.0",
     "pino-http": "^11.0.0"
@@ -97,10 +108,10 @@
     "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^9.39.3",
     "@nestjs/cli": "^11.0.16",
-    "@nestjs/common": "^11.1.14",
-    "@nestjs/core": "^11.1.14",
+    "@nestjs/common": "^11.1.18",
+    "@nestjs/core": "^11.1.18",
     "@nestjs/schematics": "^11.0.9",
-    "@nestjs/testing": "^11.1.14",
+    "@nestjs/testing": "^11.1.18",
     "@opentelemetry/api": "^1.9.0",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
