@@ -62,10 +62,7 @@ function buildOtlpNodeSdk(options: OtlpSdkOptions): NodeSDK {
     spanProcessors: [spanProcessor],
     instrumentations: [
       getNodeAutoInstrumentations({
-        '@opentelemetry/instrumentation-fs': { enabled: false },
         '@opentelemetry/instrumentation-http': httpInstrumentConfig,
-        '@opentelemetry/instrumentation-kafkajs': { enabled: true },
-        '@opentelemetry/instrumentation-nestjs-core': { enabled: true },
       }),
     ],
     resourceDetectors: [envDetector, processDetector],
