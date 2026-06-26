@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import type { JetStreamClient, JetStreamManager, NatsConnection } from 'nats';
 import { StringCodec } from 'nats';
-import { InternalGuard } from '../internal/internal.guard.js';
-import { NATS_CONNECTION, NATS_JETSTREAM } from './nats.module.js';
+import { InternalGuard } from '../internal/internal.guard';
+import { NATS_CONNECTION, NATS_JETSTREAM } from './nats.module';
 
 export interface DlqMessage {
   seq: number;

@@ -1,4 +1,4 @@
-export { InternalGuard } from './internal.guard.js';
-export { InternalClient } from './internal-client.js';
-export { InternalClientModule } from './internal-client.module.js';
-export type { PeerConfig } from './internal-client.module.js';
+export { InternalGuard } from './internal.guard';
+export { InternalClient } from './internal-client';
+export { InternalClientModule } from './internal-client.module';
+export type { PeerConfig } from './internal-client.module';
