@@ -99,6 +99,7 @@
     }
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@opentelemetry/api": "^1.7.0",
     "@opentelemetry/auto-instrumentations-node": "^0.75.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.217.0",
@@ -107,6 +108,8 @@
     "@opentelemetry/sdk-node": "^0.217.0",
     "@opentelemetry/sdk-trace-base": "^2.6.0",
     "@opentelemetry/semantic-conventions": "^1.39.0",
+    "axios": "^1.18.1",
+    "nats": "^2.29.3",
     "nestjs-pino": "^4.6.0",
     "pino-http": "^11.0.0"
   },
