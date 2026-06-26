@@ -191,14 +191,29 @@ export class NatsService implements OnApplicationShutdown {
         });
       }
     } catch {
-      // Stream does not exist — create it
-      await this.jsm.streams.add({
-        name,
-        subjects,
-        storage: StorageType.File,
-        retention: RetentionPolicy.Limits,
-        num_replicas: 1,
-      });
+      // info() missed it — try to create; if it actually exists (race / stale
+      // view / config drift), reconcile by unioning subjects via update instead
+      // of throwing "stream name already in use with a different configuration".
+      try {
+        await this.jsm.streams.add({
+          name,
+          subjects,
+          storage: StorageType.File,
+          retention: RetentionPolicy.Limits,
+          num_replicas: 1,
+        });
+      } catch (addErr) {
+        if (!(addErr as Error).message?.includes('already in use')) throw addErr;
+        const info = await this.jsm.streams.info(name);
+        const existing = info.config.subjects ?? [];
+        const missing = subjects.filter((s) => !existing.includes(s));
+        if (missing.length > 0) {
+          await this.jsm.streams.update(name, {
+            ...info.config,
+            subjects: [...existing, ...missing],
+          });
+        }
+      }
     }
   }
 
@@ -214,14 +229,19 @@ export class NatsService implements OnApplicationShutdown {
         });
       }
     } catch {
-      // Create DLQ stream capturing all *.dlq subjects
-      await this.jsm.streams.add({
-        name: dlqStream,
-        subjects: ['*.dlq', '*.*.dlq'],
-        storage: StorageType.File,
-        retention: RetentionPolicy.Limits,
-        num_replicas: 1,
-      });
+      // Create DLQ stream capturing all *.dlq subjects; tolerate an
+      // already-existing stream (idempotent — its wildcard already covers us).
+      try {
+        await this.jsm.streams.add({
+          name: dlqStream,
+          subjects: ['*.dlq', '*.*.dlq'],
+          storage: StorageType.File,
+          retention: RetentionPolicy.Limits,
+          num_replicas: 1,
+        });
+      } catch (addErr) {
+        if (!(addErr as Error).message?.includes('already in use')) throw addErr;
+      }
     }
   }
 
