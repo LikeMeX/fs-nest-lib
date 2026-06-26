@@ -4,3 +4,4 @@ export * from './semconv';
 export * from './tenant/tenant-context';
 export * from './effective-dating/effective-dated.entity';
 export * from './internal/index';
+export * from './nats/index';
