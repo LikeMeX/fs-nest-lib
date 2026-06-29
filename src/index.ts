@@ -6,3 +6,4 @@ export * from './effective-dating/effective-dated.entity';
 export * from './internal/index';
 export * from './nats/index';
 export * from './rpc/index';
+export * from './dev-auth/index';

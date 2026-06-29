@@ -178,12 +178,35 @@ export class NatsService implements OnApplicationShutdown {
   // Stream management
   // -------------------------------------------------------------------------
 
+  /**
+   * Returns true if `candidate` is already covered by an existing NATS subject
+   * pattern, accounting for the `>` wildcard (matches one or more tokens) and
+   * `*` wildcard (matches exactly one token).
+   *
+   * Examples: 'learn.>' covers 'learn.DELETE_USER'; 'learn.*' covers 'learn.foo'.
+   */
+  private subjectCovered(candidate: string, patterns: string[]): boolean {
+    return patterns.some((p) => {
+      if (p === candidate) return true;
+      if (p.endsWith('>')) {
+        // 'learn.>' → prefix is 'learn.'
+        const prefix = p.slice(0, -1); // includes trailing dot
+        return candidate.startsWith(prefix);
+      }
+      // Simple token-by-token match for '*' wildcards
+      const pParts = p.split('.');
+      const cParts = candidate.split('.');
+      if (pParts.length !== cParts.length) return false;
+      return pParts.every((pp, i) => pp === '*' || pp === cParts[i]);
+    });
+  }
+
   private async ensureStream(name: string, subjects: string[]): Promise<void> {
     try {
       const info = await this.jsm.streams.info(name);
-      // Add any new subjects the stream doesn't cover yet
+      // Add any new subjects the stream doesn't cover yet (exact or wildcard match)
       const existing = info.config.subjects ?? [];
-      const missing = subjects.filter((s) => !existing.includes(s));
+      const missing = subjects.filter((s) => !this.subjectCovered(s, existing));
       if (missing.length > 0) {
         await this.jsm.streams.update(name, {
           ...info.config,
@@ -206,7 +229,7 @@ export class NatsService implements OnApplicationShutdown {
         if (!(addErr as Error).message?.includes('already in use')) throw addErr;
         const info = await this.jsm.streams.info(name);
         const existing = info.config.subjects ?? [];
-        const missing = subjects.filter((s) => !existing.includes(s));
+        const missing = subjects.filter((s) => !this.subjectCovered(s, existing));
         if (missing.length > 0) {
           await this.jsm.streams.update(name, {
             ...info.config,
