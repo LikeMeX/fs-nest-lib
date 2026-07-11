@@ -30,5 +30,4 @@ export const SKIP_TENANT_KEY = 'skipTenant' as const;
  * \@Get('b2c')
  * async getListB2C() { ... }
  */
-export const SkipTenant = (): MethodDecorator & ClassDecorator =>
-  SetMetadata(SKIP_TENANT_KEY, true);
+export const SkipTenant = (): MethodDecorator & ClassDecorator => SetMetadata(SKIP_TENANT_KEY, true);

@@ -11,12 +11,15 @@
  *   4. The work callback's return value propagates through the transaction.
  *   5. DB_APP_ROLE env var is respected; 'app_user' is the default.
  */
-import { DataSource, EntityManager } from 'typeorm';
-import { withTenantTx, assertSafeRoleIdent } from './tenant-tx';
+import type { DataSource, EntityManager } from 'typeorm';
+import { assertSafeRoleIdent, withTenantTx } from './tenant-tx';
 
 const SAMPLE_BU = '3f47e9a0-1234-5678-abcd-ef0123456789';
 
-interface CapturedQuery { sql: string; params?: unknown[] }
+interface CapturedQuery {
+  sql: string;
+  params?: unknown[];
+}
 
 function buildMockDs(): { ds: DataSource; queries: CapturedQuery[]; mockManager: EntityManager } {
   const queries: CapturedQuery[] = [];
@@ -28,9 +31,7 @@ function buildMockDs(): { ds: DataSource; queries: CapturedQuery[]; mockManager:
   } as unknown as EntityManager;
 
   const ds = {
-    transaction: jest
-      .fn()
-      .mockImplementation(async (fn: (em: EntityManager) => Promise<unknown>) => fn(mockManager)),
+    transaction: jest.fn().mockImplementation(async (fn: (em: EntityManager) => Promise<unknown>) => fn(mockManager)),
   } as unknown as DataSource;
 
   return { ds, queries, mockManager };
@@ -48,13 +49,13 @@ describe('assertSafeRoleIdent — role identifier validation', () => {
   });
 
   const invalid = [
-    '123start',       // starts with digit
-    'UPPERCASE',      // uppercase
-    'has space',      // space
-    'has-dash',       // hyphen
-    "role'; DROP",    // SQL injection attempt
-    '"quoted"',       // double-quoted
-    '',               // empty string
+    '123start', // starts with digit
+    'UPPERCASE', // uppercase
+    'has space', // space
+    'has-dash', // hyphen
+    "role'; DROP", // SQL injection attempt
+    '"quoted"', // double-quoted
+    '', // empty string
   ];
 
   it.each(invalid)('rejects unsafe identifier: %s', (role) => {
@@ -67,7 +68,6 @@ describe('assertSafeRoleIdent — role identifier validation', () => {
 // ---------------------------------------------------------------------------
 
 describe('withTenantTx', () => {
-
   it('opens a TypeORM transaction', async () => {
     const { ds } = buildMockDs();
     await withTenantTx(ds, SAMPLE_BU, async () => 'ok');
@@ -137,7 +137,7 @@ describe('withTenantTx', () => {
     await withTenantTx(ds, SAMPLE_BU, async () => null, { role: 'app_user' });
 
     const roleIdx = queries.findIndex((q) => q.sql.includes('SET LOCAL ROLE'));
-    const gucIdx  = queries.findIndex((q) => q.sql.includes('set_config'));
+    const gucIdx = queries.findIndex((q) => q.sql.includes('set_config'));
     expect(roleIdx).toBeGreaterThanOrEqual(0);
     expect(gucIdx).toBeGreaterThanOrEqual(0);
     expect(roleIdx).toBeLessThan(gucIdx);
@@ -145,9 +145,9 @@ describe('withTenantTx', () => {
 
   it('does not open a transaction when the role is invalid', async () => {
     const { ds } = buildMockDs();
-    await expect(
-      withTenantTx(ds, SAMPLE_BU, async () => null, { role: 'BAD ROLE' }),
-    ).rejects.toThrow(/Unsafe DB role identifier/);
+    await expect(withTenantTx(ds, SAMPLE_BU, async () => null, { role: 'BAD ROLE' })).rejects.toThrow(
+      /Unsafe DB role identifier/,
+    );
     expect((ds.transaction as jest.Mock).mock.calls).toHaveLength(0);
   });
 
@@ -169,7 +169,9 @@ describe('withTenantTx', () => {
   it('passes the EntityManager to the work callback', async () => {
     const { ds, mockManager } = buildMockDs();
     let capturedEm: EntityManager | undefined;
-    await withTenantTx(ds, SAMPLE_BU, async (em) => { capturedEm = em; });
+    await withTenantTx(ds, SAMPLE_BU, async (em) => {
+      capturedEm = em;
+    });
     expect(capturedEm).toBe(mockManager);
   });
 

@@ -17,17 +17,16 @@
  * 11. failOnMissingBu=true → 403 when resolver returns undefined.
  * 12. failOnMissingBu=false (default) → skip-with-log when resolver returns undefined.
  */
-import { ForbiddenException } from '@nestjs/common';
-import { ExecutionContext, CallHandler } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { type CallHandler, type ExecutionContext, ForbiddenException } from '@nestjs/common';
+import type { Reflector } from '@nestjs/core';
 import { of } from 'rxjs';
-import { BaseTenantInterceptor } from './tenant.interceptor';
-import { BuResolver } from './bu-resolver.interface';
-import { getBuId } from './tenant-context';
+import type { BuResolver } from './bu-resolver.interface';
 import { SKIP_TENANT_KEY } from './skip-tenant.decorator';
+import { BaseTenantInterceptor } from './tenant.interceptor';
+import { getBuId } from './tenant-context';
 
 const SAMPLE_UUID = '3f47e9a0-1234-5678-abcd-ef0123456789';
-const OTHER_UUID  = 'aaaabbbb-cccc-dddd-eeee-ffffaaaabbbb';
+const OTHER_UUID = 'aaaabbbb-cccc-dddd-eeee-ffffaaaabbbb';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -45,8 +44,8 @@ function buildContext(reqFields: Record<string, unknown>): ExecutionContext {
   const req = { headers: {}, ...reqFields };
   return {
     switchToHttp: () => ({ getRequest: () => req }),
-    getHandler:   () => ({}),
-    getClass:     () => ({}),
+    getHandler: () => ({}),
+    getClass: () => ({}),
   } as unknown as ExecutionContext;
 }
 
@@ -55,12 +54,7 @@ function makeInterceptor(
   isSkip = false,
   opts: { failOnMissingBu?: boolean } = {},
 ): BaseTenantInterceptor {
-  return new BaseTenantInterceptor(
-    makeReflector(isSkip),
-    makeResolver(serverBuId),
-    [SKIP_TENANT_KEY],
-    opts,
-  );
+  return new BaseTenantInterceptor(makeReflector(isSkip), makeResolver(serverBuId), [SKIP_TENANT_KEY], opts);
 }
 
 async function runInterceptor(
@@ -85,7 +79,7 @@ async function runInterceptor(
       (obs$) => {
         obs$.subscribe({
           complete: () => resolve({ buId: capturedBuId }),
-          error:    (e) => resolve({ buId: capturedBuId, error: e }),
+          error: (e) => resolve({ buId: capturedBuId, error: e }),
         });
       },
       (e) => resolve({ buId: capturedBuId, error: e }),
@@ -99,29 +93,23 @@ async function runInterceptor(
 
 describe('BaseTenantInterceptor._validateHeaderAndGetBuId (centralised security check)', () => {
   function make(serverBuId: string | undefined) {
-    return new BaseTenantInterceptor(
-      makeReflector(false),
-      makeResolver(serverBuId),
-    );
+    return new BaseTenantInterceptor(makeReflector(false), makeResolver(serverBuId));
   }
 
   // ── No header ─────────────────────────────────────────────────────────────
   it('returns server buId when no header is present', () => {
-    expect(make(SAMPLE_UUID)._validateHeaderAndGetBuId(
-      { headers: {} } as any, SAMPLE_UUID,
-    )).toBe(SAMPLE_UUID);
+    expect(make(SAMPLE_UUID)._validateHeaderAndGetBuId({ headers: {} } as any, SAMPLE_UUID)).toBe(SAMPLE_UUID);
   });
 
   it('returns undefined when no header and no server buId', () => {
-    expect(make(undefined)._validateHeaderAndGetBuId(
-      { headers: {} } as any, undefined,
-    )).toBeUndefined();
+    expect(make(undefined)._validateHeaderAndGetBuId({ headers: {} } as any, undefined)).toBeUndefined();
   });
 
   // ── Header matches server buId ─────────────────────────────────────────────
   it('returns the SERVER buId (not the header) when header matches', () => {
     const result = make(SAMPLE_UUID)._validateHeaderAndGetBuId(
-      { headers: { 'x-business-bu-id': SAMPLE_UUID } } as any, SAMPLE_UUID,
+      { headers: { 'x-business-bu-id': SAMPLE_UUID } } as any,
+      SAMPLE_UUID,
     );
     expect(result).toBe(SAMPLE_UUID);
   });
@@ -129,7 +117,8 @@ describe('BaseTenantInterceptor._validateHeaderAndGetBuId (centralised security 
   it('case-insensitive match: lowercase header vs uppercase server buId still passes', () => {
     const upper = SAMPLE_UUID.toUpperCase();
     const result = make(upper)._validateHeaderAndGetBuId(
-      { headers: { 'x-business-bu-id': SAMPLE_UUID } } as any, upper,
+      { headers: { 'x-business-bu-id': SAMPLE_UUID } } as any,
+      upper,
     );
     expect(result).toBe(upper);
   });
@@ -137,19 +126,17 @@ describe('BaseTenantInterceptor._validateHeaderAndGetBuId (centralised security 
   // ── Header mismatches server buId → 403 ────────────────────────────────────
   it('throws ForbiddenException when header does not match server buId', () => {
     expect(() =>
-      make(SAMPLE_UUID)._validateHeaderAndGetBuId(
-        { headers: { 'x-business-bu-id': OTHER_UUID } } as any, SAMPLE_UUID,
-      ),
+      make(SAMPLE_UUID)._validateHeaderAndGetBuId({ headers: { 'x-business-bu-id': OTHER_UUID } } as any, SAMPLE_UUID),
     ).toThrow(ForbiddenException);
   });
 
   it('ForbiddenException message references x-business-bu-id', () => {
     let msg = '';
     try {
-      make(SAMPLE_UUID)._validateHeaderAndGetBuId(
-        { headers: { 'x-business-bu-id': OTHER_UUID } } as any, SAMPLE_UUID,
-      );
-    } catch (e) { msg = (e as Error).message; }
+      make(SAMPLE_UUID)._validateHeaderAndGetBuId({ headers: { 'x-business-bu-id': OTHER_UUID } } as any, SAMPLE_UUID);
+    } catch (e) {
+      msg = (e as Error).message;
+    }
     expect(msg).toMatch(/x-business-bu-id/);
   });
 
@@ -157,7 +144,8 @@ describe('BaseTenantInterceptor._validateHeaderAndGetBuId (centralised security 
   it('returns undefined (ignores header) when header is present but server buId is absent', () => {
     // SECURITY: must NOT accept header as authority without server confirmation.
     const result = make(undefined)._validateHeaderAndGetBuId(
-      { headers: { 'x-business-bu-id': SAMPLE_UUID } } as any, undefined,
+      { headers: { 'x-business-bu-id': SAMPLE_UUID } } as any,
+      undefined,
     );
     expect(result).toBeUndefined();
   });
@@ -165,7 +153,8 @@ describe('BaseTenantInterceptor._validateHeaderAndGetBuId (centralised security 
   // ── Non-UUID header → treated as absent ─────────────────────────────────
   it('ignores non-UUID header and returns server buId', () => {
     const result = make(SAMPLE_UUID)._validateHeaderAndGetBuId(
-      { headers: { 'x-business-bu-id': 'not-a-uuid' } } as any, SAMPLE_UUID,
+      { headers: { 'x-business-bu-id': 'not-a-uuid' } } as any,
+      SAMPLE_UUID,
     );
     expect(result).toBe(SAMPLE_UUID);
   });
@@ -173,7 +162,8 @@ describe('BaseTenantInterceptor._validateHeaderAndGetBuId (centralised security 
   // ── Array header → first element used ───────────────────────────────────
   it('uses first element of array header for comparison (match)', () => {
     const result = make(SAMPLE_UUID)._validateHeaderAndGetBuId(
-      { headers: { 'x-business-bu-id': [SAMPLE_UUID, OTHER_UUID] } } as any, SAMPLE_UUID,
+      { headers: { 'x-business-bu-id': [SAMPLE_UUID, OTHER_UUID] } } as any,
+      SAMPLE_UUID,
     );
     expect(result).toBe(SAMPLE_UUID);
   });
@@ -181,7 +171,8 @@ describe('BaseTenantInterceptor._validateHeaderAndGetBuId (centralised security 
   it('throws 403 when first element of array header mismatches server buId', () => {
     expect(() =>
       make(SAMPLE_UUID)._validateHeaderAndGetBuId(
-        { headers: { 'x-business-bu-id': [OTHER_UUID, SAMPLE_UUID] } } as any, SAMPLE_UUID,
+        { headers: { 'x-business-bu-id': [OTHER_UUID, SAMPLE_UUID] } } as any,
+        SAMPLE_UUID,
       ),
     ).toThrow(ForbiddenException);
   });
@@ -192,7 +183,6 @@ describe('BaseTenantInterceptor._validateHeaderAndGetBuId (centralised security 
 // ---------------------------------------------------------------------------
 
 describe('BaseTenantInterceptor.intercept', () => {
-
   describe('Skip metadata — request forwarded without tenant resolution', () => {
     it('forwards request without resolving buId when skip key is true', async () => {
       const { buId, error } = await runInterceptor({ headers: {} }, SAMPLE_UUID, true);
@@ -210,11 +200,7 @@ describe('BaseTenantInterceptor.intercept', () => {
     });
 
     it('does NOT throw 403 for header mismatch when skip is active', async () => {
-      const { error } = await runInterceptor(
-        { headers: { 'x-business-bu-id': OTHER_UUID } },
-        SAMPLE_UUID,
-        true,
-      );
+      const { error } = await runInterceptor({ headers: { 'x-business-bu-id': OTHER_UUID } }, SAMPLE_UUID, true);
       expect(error).toBeUndefined();
     });
   });
@@ -226,10 +212,7 @@ describe('BaseTenantInterceptor.intercept', () => {
     });
 
     it('sets ALS buId from server-derived value when header matches', async () => {
-      const { buId } = await runInterceptor(
-        { headers: { 'x-business-bu-id': SAMPLE_UUID } },
-        SAMPLE_UUID,
-      );
+      const { buId } = await runInterceptor({ headers: { 'x-business-bu-id': SAMPLE_UUID } }, SAMPLE_UUID);
       expect(buId).toBe(SAMPLE_UUID);
     });
 
@@ -241,10 +224,7 @@ describe('BaseTenantInterceptor.intercept', () => {
 
   describe('Header mismatch → 403', () => {
     it('throws ForbiddenException when header differs from server buId', async () => {
-      const { error } = await runInterceptor(
-        { headers: { 'x-business-bu-id': OTHER_UUID } },
-        SAMPLE_UUID,
-      );
+      const { error } = await runInterceptor({ headers: { 'x-business-bu-id': OTHER_UUID } }, SAMPLE_UUID);
       expect(error).toBeInstanceOf(ForbiddenException);
     });
   });
@@ -262,18 +242,12 @@ describe('BaseTenantInterceptor.intercept', () => {
 
     it('does NOT throw when header present but resolver returns undefined', async () => {
       // Header cannot be trusted — resolver has no server value to compare against.
-      const { error } = await runInterceptor(
-        { headers: { 'x-business-bu-id': SAMPLE_UUID } },
-        undefined,
-      );
+      const { error } = await runInterceptor({ headers: { 'x-business-bu-id': SAMPLE_UUID } }, undefined);
       expect(error).toBeUndefined();
     });
 
     it('getBuId() is undefined even when header is present but no server buId', async () => {
-      const { buId } = await runInterceptor(
-        { headers: { 'x-business-bu-id': SAMPLE_UUID } },
-        undefined,
-      );
+      const { buId } = await runInterceptor({ headers: { 'x-business-bu-id': SAMPLE_UUID } }, undefined);
       expect(buId).toBeUndefined();
     });
   });
@@ -302,7 +276,10 @@ describe('BaseTenantInterceptor.intercept', () => {
       const ctx = buildContext({ headers: {} });
       let handlerCalled = false;
       const obs$ = await interceptor.intercept(ctx, {
-        handle: () => { handlerCalled = true; return of('ok'); },
+        handle: () => {
+          handlerCalled = true;
+          return of('ok');
+        },
       });
       obs$.subscribe();
 

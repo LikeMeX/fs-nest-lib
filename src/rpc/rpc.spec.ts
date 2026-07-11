@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { NotFoundException } from '@nestjs/common';
-import { InternalCmd, collectCmds } from './internal-cmd.decorator';
-import { InternalRpcDispatcher } from './internal-rpc.controller';
 import { cmdToRoute } from './cmd-to-route';
+import { collectCmds, InternalCmd } from './internal-cmd.decorator';
+import { InternalRpcDispatcher } from './internal-rpc.controller';
 
 // ---------------------------------------------------------------------------
 // @InternalCmd decorator + dispatch registry
@@ -54,15 +54,11 @@ describe('InternalCmd decorator + InternalRpcDispatcher', () => {
   });
 
   it('throws NotFoundException for an unknown cmd', async () => {
-    await expect(
-      InternalRpcDispatcher.dispatch('UNKNOWN_CMD', {}),
-    ).rejects.toThrow(NotFoundException);
+    await expect(InternalRpcDispatcher.dispatch('UNKNOWN_CMD', {})).rejects.toThrow(NotFoundException);
   });
 
   it('throws NotFoundException with a message containing the cmd name', async () => {
-    await expect(
-      InternalRpcDispatcher.dispatch('MYSTERY_CMD', {}),
-    ).rejects.toThrow(/MYSTERY_CMD/);
+    await expect(InternalRpcDispatcher.dispatch('MYSTERY_CMD', {})).rejects.toThrow(/MYSTERY_CMD/);
   });
 });
 

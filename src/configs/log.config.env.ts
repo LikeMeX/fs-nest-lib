@@ -1,11 +1,4 @@
-export const _logLevelType = [
-  'trace',
-  'debug',
-  'info',
-  'warn',
-  'error',
-  'fatal',
-] as const;
+export const _logLevelType = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 type LogLevelType = (typeof _logLevelType)[number];
 const logLevel = (process.env.LOG_LEVEL as LogLevelType) || 'info';
 

@@ -1,24 +1,24 @@
 import {
-  DynamicModule,
+  type DynamicModule,
   Global,
   Inject,
   Logger,
   Module,
-  OnApplicationBootstrap,
-  OnApplicationShutdown,
+  type OnApplicationBootstrap,
+  type OnApplicationShutdown,
 } from '@nestjs/common';
 import {
   AckPolicy,
+  connect,
   DeliverPolicy,
-  JetStreamClient,
-  JetStreamManager,
-  NatsConnection,
+  type JetStreamClient,
+  type JetStreamManager,
+  type NatsConnection,
+  nanos,
   ReplayPolicy,
   RetentionPolicy,
   StorageType,
   StringCodec,
-  connect,
-  nanos,
 } from 'nats';
 
 // ---------------------------------------------------------------------------
@@ -95,15 +95,7 @@ export class NatsService implements OnApplicationShutdown {
    * retained DLQ stream (created lazily on first terminal failure).
    */
   async subscribeDurable(opts: SubscribeDurableOptions): Promise<void> {
-    const {
-      stream,
-      subject,
-      durable,
-      handler,
-      maxDeliver = 5,
-      ackWait = 30_000,
-      backoff = [],
-    } = opts;
+    const { stream, subject, durable, handler, maxDeliver = 5, ackWait = 30_000, backoff = [] } = opts;
 
     // Ensure the stream exists (idempotent upsert)
     await this.ensureStream(stream, [subject]);
@@ -333,8 +325,7 @@ export class NatsModule implements OnApplicationBootstrap {
 
     const serviceProvider = {
       provide: NatsService,
-      useFactory: (): NatsService =>
-        new NatsService(NatsModule.nc, NatsModule.js, NatsModule.jsm),
+      useFactory: (): NatsService => new NatsService(NatsModule.nc, NatsModule.js, NatsModule.jsm),
       inject: [NATS_CONNECTION],
     };
 

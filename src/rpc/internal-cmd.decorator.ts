@@ -38,8 +38,7 @@ export interface CmdHandlerEntry {
  */
 export function InternalCmd(cmd: string): MethodDecorator {
   return (target: object, propertyKey: string | symbol): void => {
-    const existing: CmdHandlerEntry[] =
-      Reflect.getMetadata(INTERNAL_CMD_METADATA, target.constructor) ?? [];
+    const existing: CmdHandlerEntry[] = Reflect.getMetadata(INTERNAL_CMD_METADATA, target.constructor) ?? [];
     existing.push({ cmd, methodName: String(propertyKey) });
     Reflect.defineMetadata(INTERNAL_CMD_METADATA, existing, target.constructor);
   };

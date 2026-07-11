@@ -5,23 +5,19 @@
  * DEV_AUTH_SHIM is set per-test.
  */
 
+import type { Request, Response } from 'express';
 import { decodeJwtPayload, setIfAbsent } from './dev-claims.middleware';
-import { Request, Response } from 'express';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 /** Build a minimal fake JWT with the given payload (no real sig). */
 function fakeJwt(payload: object): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString(
-    'base64url',
-  );
+  const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
   return `${header}.${body}.fakesig`;
 }
 
-function fakeReq(
-  overrides: Partial<Request> & { headers?: Record<string, string> },
-): Request {
+function fakeReq(overrides: Partial<Request> & { headers?: Record<string, string> }): Request {
   return { headers: {}, ...overrides } as unknown as Request;
 }
 

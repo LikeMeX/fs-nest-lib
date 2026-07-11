@@ -1,10 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 /**
  * InternalGuard validates that inter-service HTTP requests carry the shared
@@ -25,9 +19,7 @@ export class InternalGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const token = process.env['INTERNAL_TOKEN'];
     if (!token) {
-      this.logger.warn(
-        'INTERNAL_TOKEN env var is not set — all /internal/* requests will be rejected',
-      );
+      this.logger.warn('INTERNAL_TOKEN env var is not set — all /internal/* requests will be rejected');
       throw new UnauthorizedException('INTERNAL_TOKEN not configured');
     }
 

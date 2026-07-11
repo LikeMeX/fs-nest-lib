@@ -46,19 +46,19 @@
  */
 
 import {
-  CallHandler,
-  ExecutionContext,
+  type CallHandler,
+  type ExecutionContext,
   ForbiddenException,
   Injectable,
   Logger,
-  NestInterceptor,
+  type NestInterceptor,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
+import type { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
-import { runWithTenant, Scope } from './tenant-context';
+import { Observable } from 'rxjs';
 import type { BuResolver } from './bu-resolver.interface';
 import { SKIP_TENANT_KEY } from './skip-tenant.decorator';
+import { runWithTenant, type Scope } from './tenant-context';
 
 /** RFC 4122 UUID (case-insensitive). */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -100,17 +100,11 @@ export class BaseTenantInterceptor implements NestInterceptor {
     protected readonly opts: BaseTenantInterceptorOptions = {},
   ) {}
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<unknown>> {
+  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<unknown>> {
     // Check skip metadata from any of the configured keys.
     // Handler-level metadata overrides class-level (getAllAndOverride semantics).
     const skip = this.skipMetadataKeys.some((key) =>
-      this.reflector.getAllAndOverride<boolean>(key, [
-        context.getHandler(),
-        context.getClass(),
-      ]),
+      this.reflector.getAllAndOverride<boolean>(key, [context.getHandler(), context.getClass()]),
     );
     if (skip) return next.handle();
 
@@ -177,10 +171,7 @@ export class BaseTenantInterceptor implements NestInterceptor {
    * Visibility is `_` to allow white-box unit testing from specs in the same
    * package while keeping it out of the public API surface.
    */
-  _validateHeaderAndGetBuId(
-    req: Request,
-    serverBuId: string | undefined,
-  ): string | undefined {
+  _validateHeaderAndGetBuId(req: Request, serverBuId: string | undefined): string | undefined {
     const rawHeader = req.headers['x-business-bu-id'];
     const headerBuId = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
 
@@ -202,9 +193,7 @@ export class BaseTenantInterceptor implements NestInterceptor {
 
     if (!UUID_RE.test(headerBuId)) {
       // Malformed header — treat as absent and use serverBuId.
-      this.logger.warn(
-        '[BaseTenantInterceptor] x-business-bu-id header is not UUID-shaped — ignored.',
-      );
+      this.logger.warn('[BaseTenantInterceptor] x-business-bu-id header is not UUID-shaped — ignored.');
       return serverBuId;
     }
 

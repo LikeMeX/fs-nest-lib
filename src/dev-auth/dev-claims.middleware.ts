@@ -20,8 +20,8 @@
  *     to prevent accidental deployment
  */
 
-import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
-import type { Request, Response, NextFunction } from 'express';
+import { Injectable, Logger, type NestMiddleware } from '@nestjs/common';
+import type { NextFunction, Request, Response } from 'express';
 
 /** Shape of a decoded JWT payload we care about for header injection. */
 interface DevJwtPayload {
@@ -125,11 +125,7 @@ export function decodeJwtPayload(token: string): DevJwtPayload | null {
 /**
  * Set `req.headers[name]` only when it is absent (undefined / empty string).
  */
-export function setIfAbsent(
-  req: Request,
-  name: string,
-  value: string | undefined,
-): void {
+export function setIfAbsent(req: Request, name: string, value: string | undefined): void {
   if (value == null) return;
   const existing = req.headers[name];
   if (!existing || existing === '') {
