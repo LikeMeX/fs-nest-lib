@@ -16,7 +16,7 @@
  *   NATS_TEST_URL=nats://localhost:4222 pnpm test
  */
 
-import { AckPolicy, DeliverPolicy, ReplayPolicy, StringCodec, connect } from 'nats';
+import { AckPolicy, connect, DeliverPolicy, ReplayPolicy, StringCodec } from 'nats';
 
 // ---------------------------------------------------------------------------
 // 1. Pure unit tests — DLQ decision logic (always runs)
@@ -28,10 +28,7 @@ describe('DLQ decision logic (pure unit)', () => {
    * when deliveryCount >= maxDeliver → terminal (term + DLQ route);
    * otherwise → nak for redelivery.
    */
-  function decideDlqAction(
-    deliveryCount: number,
-    maxDeliver: number,
-  ): 'nak' | 'terminal' {
+  function decideDlqAction(deliveryCount: number, maxDeliver: number): 'nak' | 'terminal' {
     return deliveryCount >= maxDeliver ? 'terminal' : 'nak';
   }
 
@@ -98,8 +95,8 @@ describe('NatsService integration (real NATS)', () => {
     if (!natsAvailable) {
       console.warn(
         `\n[SKIP] NATS integration tests: no NATS server reachable at ${NATS_TEST_URL}.\n` +
-        'Run: docker run -p 4222:4222 nats:2.10 -js\n' +
-        'Then: NATS_TEST_URL=nats://localhost:4222 pnpm test\n',
+          'Run: docker run -p 4222:4222 nats:2.10 -js\n' +
+          'Then: NATS_TEST_URL=nats://localhost:4222 pnpm test\n',
       );
     }
   }, 10_000);

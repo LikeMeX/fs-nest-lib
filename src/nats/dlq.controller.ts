@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  Inject,
-  Logger,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, HttpCode, Inject, Logger, Param, Post, UseGuards } from '@nestjs/common';
 import type { JetStreamClient, JetStreamManager, NatsConnection } from 'nats';
 import { StringCodec } from 'nats';
 import { InternalGuard } from '../internal/internal.guard';
@@ -41,10 +32,7 @@ export class DlqController {
   private readonly nc: NatsConnection;
   private readonly js: JetStreamClient;
 
-  constructor(
-    @Inject(NATS_CONNECTION) nc: unknown,
-    @Inject(NATS_JETSTREAM) js: unknown,
-  ) {
+  constructor(@Inject(NATS_CONNECTION) nc: unknown, @Inject(NATS_JETSTREAM) js: unknown) {
     this.nc = nc as NatsConnection;
     this.js = js as JetStreamClient;
   }

@@ -49,10 +49,7 @@ export interface CmdRoute {
  * cmdToRoute('UPDATE_COURSE')           // { method:'PUT',  path:'/internal/course',      payloadStyle:'body' }
  * cmdToRoute('DELETE_COURSE')           // { method:'DELETE', path:'/internal/course',    payloadStyle:'body' }
  */
-export function cmdToRoute(
-  cmd: string,
-  opts: { scalarPayload?: boolean; fatQuery?: boolean } = {},
-): CmdRoute {
+export function cmdToRoute(cmd: string, opts: { scalarPayload?: boolean; fatQuery?: boolean } = {}): CmdRoute {
   const upper = cmd.toUpperCase();
 
   // Extract verb prefix and noun tail

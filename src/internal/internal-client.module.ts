@@ -1,4 +1,4 @@
-import { DynamicModule, Global, Module } from '@nestjs/common';
+import { type DynamicModule, Global, Module } from '@nestjs/common';
 import { InternalClient } from './internal-client.js';
 
 /**
@@ -52,14 +52,10 @@ export class InternalClientModule {
         const token = process.env['INTERNAL_TOKEN'];
 
         if (!baseUrl) {
-          throw new Error(
-            `InternalClientModule: env var ${peer.baseUrlEnv} is not set for peer "${peer.name}"`,
-          );
+          throw new Error(`InternalClientModule: env var ${peer.baseUrlEnv} is not set for peer "${peer.name}"`);
         }
         if (!token) {
-          throw new Error(
-            `InternalClientModule: INTERNAL_TOKEN env var is not set (required by peer "${peer.name}")`,
-          );
+          throw new Error(`InternalClientModule: INTERNAL_TOKEN env var is not set (required by peer "${peer.name}")`);
         }
 
         return new InternalClient(baseUrl, token);

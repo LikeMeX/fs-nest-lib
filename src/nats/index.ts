@@ -1,18 +1,18 @@
+export type { DlqMessage } from './dlq.controller';
+export { DlqController } from './dlq.controller';
+export type { SubscribeDurableOptions } from './nats.module';
 export {
-  NatsModule,
-  NatsService,
   NATS_CONNECTION,
   NATS_JETSTREAM,
+  NatsModule,
+  NatsService,
 } from './nats.module';
-export type { SubscribeDurableOptions } from './nats.module';
-export { DlqController } from './dlq.controller';
-export type { DlqMessage } from './dlq.controller';
 export {
-  NATS_SUBJECTS,
-  NATS_STREAMS,
-  LEARN,
+  ASSESSMENT,
   CONTENT,
   CREDENTIAL,
-  ASSESSMENT,
+  LEARN,
+  NATS_STREAMS,
+  NATS_SUBJECTS,
   SKILLMASTER,
 } from './subjects';

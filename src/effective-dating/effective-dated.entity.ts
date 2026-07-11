@@ -1,11 +1,10 @@
-import { Column } from "typeorm";
-import { IsNull, LessThanOrEqual, Or } from "typeorm";
+import { Column, IsNull, LessThanOrEqual, Or } from 'typeorm';
 
 export abstract class EffectiveDated {
-  @Column({ name: "effective_from", type: "timestamptz", default: () => "now()" })
+  @Column({ name: 'effective_from', type: 'timestamptz', default: () => 'now()' })
   effectiveFrom: Date;
 
-  @Column({ name: "effective_to", type: "timestamptz", nullable: true })
+  @Column({ name: 'effective_to', type: 'timestamptz', nullable: true })
   effectiveTo: Date | null;
 }
 
@@ -62,12 +61,7 @@ export function asOfWhere(asOf: Date) {
  * @param asOf      The point-in-time date.
  * @param startIdx  The positional parameter index to use (default 1).
  */
-export function asOfSqlWhere(
-  asOf: Date,
-  startIdx = 1,
-): { clause: string; params: [Date] } {
-  const clause =
-    `effective_from <= $${startIdx} AND ` +
-    `(effective_to IS NULL OR effective_to > $${startIdx})`;
+export function asOfSqlWhere(asOf: Date, startIdx = 1): { clause: string; params: [Date] } {
+  const clause = `effective_from <= $${startIdx} AND ` + `(effective_to IS NULL OR effective_to > $${startIdx})`;
   return { clause, params: [asOf] };
 }

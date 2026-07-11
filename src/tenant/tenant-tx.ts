@@ -24,7 +24,7 @@
  * the foundation migrations of each service.
  */
 
-import { DataSource, EntityManager } from 'typeorm';
+import type { DataSource, EntityManager } from 'typeorm';
 
 /** Identifier-safe role name: lowercase letter/underscore start, then [a-z0-9_] */
 const SAFE_ROLE_RE = /^[a-z_][a-z0-9_]*$/;

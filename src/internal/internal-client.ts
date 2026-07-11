@@ -28,10 +28,7 @@ export class InternalClient {
    * Note for Phase 2 callers: this returns a Promise, not an Observable.
    * Remove `firstValueFrom(...)` / `lastValueFrom(...)` wrappers when switching.
    */
-  async send<T = unknown>(
-    pattern: { cmd: string },
-    payload: unknown,
-  ): Promise<T> {
+  async send<T = unknown>(pattern: { cmd: string }, payload: unknown): Promise<T> {
     const res = await axios.post<T>(
       `${this.baseUrl}/internal/rpc`,
       { cmd: pattern.cmd, payload },

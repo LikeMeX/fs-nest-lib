@@ -1,7 +1,7 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import axios from 'axios';
-import { InternalClient } from './internal-client';
 import { InternalGuard } from './internal.guard';
+import { InternalClient } from './internal-client';
 
 // ---------------------------------------------------------------------------
 // Helpers
