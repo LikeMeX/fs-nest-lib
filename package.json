@@ -173,7 +173,14 @@
       ]
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.spec.ts",
+      "!**/index.ts",
+      "!otlp.ts",
+      "!loggerModule.ts",
+      "!nats/nats.module.ts",
+      "!nats/dlq.controller.ts",
+      "!internal/internal-client.module.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
