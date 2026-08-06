@@ -75,7 +75,7 @@ describe('DLQ decision logic (pure unit)', () => {
 // 2. Integration tests — real NATS JetStream
 // ---------------------------------------------------------------------------
 
-const NATS_TEST_URL = process.env['NATS_TEST_URL'] ?? process.env['NATS_URL'] ?? 'nats://localhost:4222';
+const NATS_TEST_URL = process.env.NATS_TEST_URL ?? process.env.NATS_URL ?? 'nats://localhost:4222';
 
 async function tryConnect(url: string) {
   try {
@@ -130,7 +130,7 @@ describe('NatsService integration (real NATS)', () => {
 
     await js.publish(subject, sc.encode(JSON.stringify({ hello: 'world' })));
 
-    const consumer = await jsm.consumers.add(stream, {
+    const _consumer = await jsm.consumers.add(stream, {
       durable_name: 'test-consumer',
       ack_policy: AckPolicy.Explicit,
       deliver_policy: DeliverPolicy.All,

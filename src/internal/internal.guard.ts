@@ -17,7 +17,7 @@ export class InternalGuard implements CanActivate {
   private readonly logger = new Logger(InternalGuard.name);
 
   canActivate(context: ExecutionContext): boolean {
-    const token = process.env['INTERNAL_TOKEN'];
+    const token = process.env.INTERNAL_TOKEN;
     if (!token) {
       this.logger.warn('INTERNAL_TOKEN env var is not set — all /internal/* requests will be rejected');
       throw new UnauthorizedException('INTERNAL_TOKEN not configured');

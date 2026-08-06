@@ -58,7 +58,7 @@ export class DevClaimsMiddleware implements NestMiddleware {
     }
 
     try {
-      const authHeader = req.headers['authorization'] ?? req.headers['Authorization'];
+      const authHeader = req.headers.authorization ?? req.headers.Authorization;
       if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
         return next();
       }
