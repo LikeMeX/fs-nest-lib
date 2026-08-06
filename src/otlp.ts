@@ -1,30 +1,18 @@
-'use strict';
-import { IncomingMessage } from 'node:http';
+import type { IncomingMessage } from 'node:http';
 
 import { trace } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
-import { HttpInstrumentationConfig } from '@opentelemetry/instrumentation-http';
-import {
-  envDetector,
-  processDetector,
-  resourceFromAttributes,
-} from '@opentelemetry/resources';
+import type { HttpInstrumentationConfig } from '@opentelemetry/instrumentation-http';
+import { envDetector, processDetector, resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 
 import { k8s, version } from './configs/otlp.config.env';
-import {
-  ATTR_DEPLOYMENT_ENVIRONMENT,
-  ATTR_K8S_NAMESPACE_NAME,
-  ATTR_K8S_NODE_NAME,
-  ATTR_K8S_POD_NAME,
-} from './semconv';
+import { ATTR_DEPLOYMENT_ENVIRONMENT, ATTR_K8S_NAMESPACE_NAME, ATTR_K8S_NODE_NAME, ATTR_K8S_POD_NAME } from './semconv';
 
-type OTLPTraceExporterParam = ConstructorParameters<
-  typeof OTLPTraceExporter
->[0];
+type OTLPTraceExporterParam = ConstructorParameters<typeof OTLPTraceExporter>[0];
 
 interface OtlpSdkOptions {
   exporterUrl: string;
@@ -35,13 +23,7 @@ interface OtlpSdkOptions {
 let activeOtlpSdk: NodeSDK | undefined;
 
 function buildOtlpNodeSdk(options: OtlpSdkOptions): NodeSDK {
-  const defaultIgnoreIncomingRequestUrls = [
-    '/health',
-    '/metrics',
-    '/health/readiness',
-    '/health/liveness',
-    '/healthz',
-  ];
+  const defaultIgnoreIncomingRequestUrls = ['/health', '/metrics', '/health/readiness', '/health/liveness', '/healthz'];
   const { exporterUrl, ignoreIncomingRequestUrls } = options;
   const mergedIgnoreIncomingRequestUrls = new Set([
     ...defaultIgnoreIncomingRequestUrls,
@@ -52,8 +34,7 @@ function buildOtlpNodeSdk(options: OtlpSdkOptions): NodeSDK {
   };
   const httpInstrumentConfig: HttpInstrumentationConfig = {
     enabled: true,
-    ignoreIncomingRequestHook: (req: IncomingMessage) =>
-      mergedIgnoreIncomingRequestUrls.has(req.url ?? ''),
+    ignoreIncomingRequestHook: (req: IncomingMessage) => mergedIgnoreIncomingRequestUrls.has(req.url ?? ''),
   };
   const traceExporter = new OTLPTraceExporter(traceExporterOptions);
 
