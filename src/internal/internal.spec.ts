@@ -21,7 +21,7 @@ function makeMockContext(headers: Record<string, string | undefined>): Execution
 
 describe('InternalGuard', () => {
   let guard: InternalGuard;
-  const originalToken = process.env['INTERNAL_TOKEN'];
+  const originalToken = process.env.INTERNAL_TOKEN;
 
   beforeEach(() => {
     guard = new InternalGuard();
@@ -30,32 +30,32 @@ describe('InternalGuard', () => {
   afterEach(() => {
     // Restore env after each test
     if (originalToken === undefined) {
-      delete process.env['INTERNAL_TOKEN'];
+      delete process.env.INTERNAL_TOKEN;
     } else {
-      process.env['INTERNAL_TOKEN'] = originalToken;
+      process.env.INTERNAL_TOKEN = originalToken;
     }
   });
 
   it('allows a request with correct x-internal-token', () => {
-    process.env['INTERNAL_TOKEN'] = 'secret';
+    process.env.INTERNAL_TOKEN = 'secret';
     const ctx = makeMockContext({ 'x-internal-token': 'secret' });
     expect(guard.canActivate(ctx)).toBe(true);
   });
 
   it('rejects a request with missing x-internal-token header', () => {
-    process.env['INTERNAL_TOKEN'] = 'secret';
+    process.env.INTERNAL_TOKEN = 'secret';
     const ctx = makeMockContext({});
     expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
   });
 
   it('rejects a request with wrong x-internal-token header', () => {
-    process.env['INTERNAL_TOKEN'] = 'secret';
+    process.env.INTERNAL_TOKEN = 'secret';
     const ctx = makeMockContext({ 'x-internal-token': 'wrong-value' });
     expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
   });
 
   it('rejects when INTERNAL_TOKEN env var is not set', () => {
-    delete process.env['INTERNAL_TOKEN'];
+    delete process.env.INTERNAL_TOKEN;
     const ctx = makeMockContext({ 'x-internal-token': 'anything' });
     expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
   });

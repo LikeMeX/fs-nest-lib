@@ -104,7 +104,7 @@ export class DlqController {
   @HttpCode(200)
   async replayDlqMessage(@Param('seq') seqStr: string): Promise<{ ok: boolean; republishedTo: string }> {
     const seq = parseInt(seqStr, 10);
-    if (isNaN(seq) || seq < 1) {
+    if (Number.isNaN(seq) || seq < 1) {
       throw new Error(`Invalid sequence number: ${seqStr}`);
     }
 

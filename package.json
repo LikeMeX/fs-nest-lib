@@ -80,7 +80,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json --passWithNoTests",
     "clean": "rm -rf dist .tsbuildinfo",
     "prepublishOnly": "pnpm run clean && pnpm run build",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "peerDependencies": {
     "@nestjs/common": "^10.0.0 || ^11.0.0",
