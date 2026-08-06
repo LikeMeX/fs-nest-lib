@@ -49,7 +49,7 @@ export class InternalClientModule {
       provide: peer.name,
       useFactory: (): InternalClient => {
         const baseUrl = process.env[peer.baseUrlEnv];
-        const token = process.env['INTERNAL_TOKEN'];
+        const token = process.env.INTERNAL_TOKEN;
 
         if (!baseUrl) {
           throw new Error(`InternalClientModule: env var ${peer.baseUrlEnv} is not set for peer "${peer.name}"`);

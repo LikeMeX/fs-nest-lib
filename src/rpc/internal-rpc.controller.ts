@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { InternalGuard } from '../internal/internal.guard';
-import { type CmdHandlerEntry, collectCmds } from './internal-cmd.decorator';
+import { type CmdHandlerEntry } from './internal-cmd.decorator';
 
 // ---------------------------------------------------------------------------
 // Dispatch registry

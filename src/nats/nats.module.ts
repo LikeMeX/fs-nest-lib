@@ -302,13 +302,13 @@ export class NatsModule implements OnApplicationBootstrap {
   private readonly logger = new Logger(NatsModule.name);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(@Inject(NATS_CONNECTION) private readonly conn: unknown) {}
+  constructor(@Inject(NATS_CONNECTION) readonly _conn: unknown) {}
 
   static forRoot(): DynamicModule {
     const connectionProvider = {
       provide: NATS_CONNECTION,
       useFactory: async (): Promise<NatsConnection> => {
-        const url = process.env['NATS_URL'] ?? 'nats://localhost:4222';
+        const url = process.env.NATS_URL ?? 'nats://localhost:4222';
         const nc = await connect({ servers: url });
         NatsModule.nc = nc;
         NatsModule.js = nc.jetstream();
@@ -337,6 +337,6 @@ export class NatsModule implements OnApplicationBootstrap {
   }
 
   async onApplicationBootstrap(): Promise<void> {
-    this.logger.log(`Connected to NATS at ${process.env['NATS_URL'] ?? 'nats://localhost:4222'}`);
+    this.logger.log(`Connected to NATS at ${process.env.NATS_URL ?? 'nats://localhost:4222'}`);
   }
 }
