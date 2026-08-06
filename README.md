@@ -4,8 +4,9 @@ NestJS library providing OpenTelemetry (OTLP) tracing and Pino-based request log
 
 ## Requirements
 
-- **Node.js** ≥ 24  
-- **pnpm** (recommended) or npm/yarn
+- **Node.js** 24 (use `nvm install 24` / `asdf install nodejs 24` or download from nodejs.org)
+- **pnpm** — install with `npm i -g pnpm`
+- Active branch: `feat/enterprise-v2`
 
 ## Installation
 
