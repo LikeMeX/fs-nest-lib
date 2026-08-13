@@ -17,13 +17,31 @@ const genReqId: GenReqId = (req: IncomingMessage, res: ServerResponse) => {
   return id;
 };
 
+/**
+ * The req serializer below returns the whole request, so every header reaches the log sink. A bearer
+ * token in a log line is a credential anyone with log access can replay until it expires; the same
+ * goes for the session cookie. Strip them here rather than trusting each service to remember.
+ *
+ * Exported so the property can be tested against real pino output instead of asserted as config.
+ */
+export const logRedactPaths = [
+  'res.headers',
+  '[*].remoteAddress',
+  '[*].remotePort',
+  'req.headers.authorization',
+  'req.headers.cookie',
+  'req.headers["x-api-key"]',
+  'req.headers["x-secret-key"]',
+  'res.headers["set-cookie"]',
+];
+
 export const loggerModule = LoggerModule.forRoot({
   pinoHttp: {
     level: pinoHttp.level,
     genReqId,
     transport: pinoHttp.transport,
     redact: {
-      paths: ['res.headers', '[*].remoteAddress', '[*].remotePort'],
+      paths: logRedactPaths,
       remove: true,
     },
     serializers: {
