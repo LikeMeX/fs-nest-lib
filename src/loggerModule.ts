@@ -18,9 +18,10 @@ const genReqId: GenReqId = (req: IncomingMessage, res: ServerResponse) => {
 };
 
 /**
- * The req serializer below returns the whole request, so every header reaches the log sink. A bearer
- * token in a log line is a credential anyone with log access can replay until it expires; the same
- * goes for the session cookie. Strip them here rather than trusting each service to remember.
+ * The req serializer below keeps only the request line, but a service can still log a raw request or
+ * headers object by hand. A bearer token in a log line is a credential anyone with log access can
+ * replay until it expires; the same goes for the session cookie. Strip them here rather than trusting
+ * each service to remember.
  *
  * Exported so the property can be tested against real pino output instead of asserted as config.
  */
@@ -35,19 +36,21 @@ export const logRedactPaths = [
   'res.headers["set-cookie"]',
 ];
 
-const loggerParams: Params = {
+/** Exported so the spec can run real pino-http with exactly these options. */
+export const loggerParams: Params = {
   pinoHttp: {
     level: pinoHttp.level,
     genReqId,
     transport: pinoHttp.transport,
+    // Logs written while handling a request carry only reqId instead of the whole req object.
+    quietReqLogger: true,
     redact: {
       paths: logRedactPaths,
       remove: true,
     },
     serializers: {
-      req(req) {
-        return req;
-      },
+      // Headers, query and params were most of the bytes on every request line we ship to Grafana.
+      req: (req) => ({ id: req.id, method: req.method, url: req.url }),
     },
     formatters: {
       log(object) {
