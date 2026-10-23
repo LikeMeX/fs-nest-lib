@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { RequestMethod } from '@nestjs/common';
+import { type DynamicModule, RequestMethod } from '@nestjs/common';
 import { context, trace } from '@opentelemetry/api';
-import { LoggerModule } from 'nestjs-pino';
+import { LoggerModule, type Params } from 'nestjs-pino';
 import type { GenReqId } from 'pino-http';
 
 import { pinoHttp } from './configs/log.config.env';
@@ -35,7 +35,7 @@ export const logRedactPaths = [
   'res.headers["set-cookie"]',
 ];
 
-export const loggerModule = LoggerModule.forRoot({
+const loggerParams: Params = {
   pinoHttp: {
     level: pinoHttp.level,
     genReqId,
@@ -65,4 +65,20 @@ export const loggerModule = LoggerModule.forRoot({
     { method: RequestMethod.ALL, path: 'metrics' },
     { method: RequestMethod.ALL, path: 'healthz' },
   ],
-});
+};
+
+/**
+ * forRoot() only creates providers for the @InjectPinoLogger() contexts registered when it is called.
+ * Services import this package first thing (otel.ts has to load before express and pg), so calling it
+ * here would run before any provider file and every injected logger would fail to resolve. The getters
+ * defer it until Nest reads the module at bootstrap, when all decorators have run.
+ */
+export const loggerModule: DynamicModule = {
+  module: LoggerModule,
+  get providers() {
+    return LoggerModule.forRoot(loggerParams).providers;
+  },
+  get exports() {
+    return LoggerModule.forRoot(loggerParams).exports;
+  },
+};
