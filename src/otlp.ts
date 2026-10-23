@@ -9,6 +9,7 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 
+import { BullInstrumentation } from './bullInstrumentation';
 import { k8s, version } from './configs/otlp.config.env';
 import { ATTR_DEPLOYMENT_ENVIRONMENT, ATTR_K8S_NAMESPACE_NAME, ATTR_K8S_NODE_NAME, ATTR_K8S_POD_NAME } from './semconv';
 
@@ -45,6 +46,7 @@ function buildOtlpNodeSdk(options: OtlpSdkOptions): NodeSDK {
       getNodeAutoInstrumentations({
         '@opentelemetry/instrumentation-http': httpInstrumentConfig,
       }),
+      new BullInstrumentation(),
     ],
     resourceDetectors: [envDetector, processDetector],
     resource: resourceFromAttributes({
@@ -66,11 +68,17 @@ const otlpSdk = (options: OtlpSdkOptions) => {
   sdk.start();
   activeOtlpSdk = sdk;
 
-  const shutdown = () => {
+  const shutdown = (signal: NodeJS.Signals) => {
+    // Nest's enableShutdownHooks also listens: it closes the app (draining in-flight jobs and consumers),
+    // removes its listener and re-raises the signal. Exiting on the first delivery cut that drain short
+    // and lost the spans it produced, so flush and exit only once we are the last listener.
+    if (process.listenerCount(signal) > 1) return;
+    process.removeListener('SIGTERM', shutdown);
+    process.removeListener('SIGINT', shutdown);
     void shutdownOtlpSdk().finally(() => process.exit(0));
   };
-  process.once('SIGTERM', shutdown);
-  process.once('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 
   return sdk;
 };

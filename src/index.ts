@@ -1,3 +1,4 @@
+export { BULL_TRACE_CARRIER_KEY, BullInstrumentation } from './bullInstrumentation';
 export * from './dev-auth/index';
 export * from './effective-dating/effective-dated.entity';
 export * from './internal/index';
