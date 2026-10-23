@@ -1,7 +1,32 @@
 import { Writable } from 'node:stream';
+import { Injectable } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import pino from 'pino';
 
-import { logRedactPaths } from './loggerModule';
+import { loggerModule, logRedactPaths } from './loggerModule';
+
+/**
+ * Services import this package from otel.ts before anything else, so loggerModule is evaluated before
+ * any provider file runs its @InjectPinoLogger(). This class is decorated after the import above,
+ * which is the same order.
+ */
+@Injectable()
+class LateDecoratedService {
+  constructor(@InjectPinoLogger('LateDecoratedService') readonly logger: PinoLogger) {}
+}
+
+describe('loggerModule', () => {
+  it('resolves @InjectPinoLogger() loggers declared after the package was imported', async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [loggerModule],
+      providers: [LateDecoratedService],
+    }).compile();
+
+    expect(moduleRef.get(LateDecoratedService).logger).toBeInstanceOf(PinoLogger);
+    await moduleRef.close();
+  });
+});
 
 /**
  * The module logs the request object whole, headers included. These assertions run a real pino
